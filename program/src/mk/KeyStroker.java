@@ -14,7 +14,7 @@ public class KeyStroker {
             while(i < 100){
                 robot.mouseMove(10,50);
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(1);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

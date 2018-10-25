@@ -14,7 +14,10 @@ public class Main {
         System.out.println(screenshotTaker.getColorFromCoords(0,0));
 
 
-        KeyStroker keyStroker = new KeyStroker();
-        keyStroker.sendKeyStroke();
+        //KeyStroker keyStroker = new KeyStroker();
+        //keyStroker.sendKeyStroke();
+
+        System.out.println("NEW");
+        screenshotTaker.hasGameStarted(screenshotTaker.screenshot);
     }
 }
