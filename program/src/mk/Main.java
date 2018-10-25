@@ -10,8 +10,8 @@ public class Main {
 
         screenshotTaker.takeScreenShot();
 
-        System.out.println(screenshotTaker.screenshot.getRGB(0,0));
-        System.out.println(screenshotTaker.getColorFromCoords(0,0));
+        //System.out.println(screenshotTaker.screenshot.getRGB(0,0));
+        //System.out.println(screenshotTaker.getColorFromCoords(0,0));
 
 
         //KeyStroker keyStroker = new KeyStroker();

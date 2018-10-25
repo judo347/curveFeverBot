@@ -11,25 +11,21 @@ public class ScreenshotTaker extends JFrame{
 
     private static final long serialVersionUID = 1L; //TODO is this really needed?
 
-    public BufferedImage screenshot = null;
-
-    public void takeScreenShot(){
+    /** @return a screenshot. */
+    public BufferedImage takeScreenShot(){
 
         try {
             Robot robot = new Robot();
             Rectangle screenRect = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
-            BufferedImage sceenFullImage = robot.createScreenCapture(screenRect);
+            BufferedImage screenshot = robot.createScreenCapture(screenRect);
 
-            screenshot = sceenFullImage;
+            return screenshot;
 
         } catch (AWTException e) {
             e.printStackTrace();
         }
-    }
 
-    public Color getColorFromCoords(int x, int y){
-
-        return new Color(screenshot.getRGB(x, y));
+        return null;
     }
 
     /** returns true if start is counting down or game has started. */
@@ -38,7 +34,7 @@ public class ScreenshotTaker extends JFrame{
         //Find all white shapes
         ArrayList<boolean[][]> whiteShapes = getAllWhiteShapes(screenshot);
 
-        //Find game sqaure
+        //Find playing field square
         OwnShape gameSquare = getGameSquare(whiteShapes); //TODO Should use this as the playing field for the rest of the game IMPORTANT!!
 
         //drawTransRectangle(gameSquare); //TODO Temp
@@ -46,6 +42,7 @@ public class ScreenshotTaker extends JFrame{
         return gameSquare != null;
     }
 
+    /** @return the shape from whiteShapes that matches a game field. (if any is found.) */
     private OwnShape getGameSquare(ArrayList<boolean[][]> whiteShapes){
 
         //Convert to OwnShape object
@@ -59,17 +56,7 @@ public class ScreenshotTaker extends JFrame{
             if(shape.isShapeRightSize())
                 sizeFilteredShapes.add(shape);
 
-        //TODO OTHER FILTERING
-        System.out.println("FilteredShapes: " + sizeFilteredShapes.size());
-
-        //TODO
-        //for(boolean[][] shape : whiteShapes)
-        //    System.out.println(shape.length + " " + shape[0].length);
-
-        //TODO TEMP DRAW SHAPES
-        //for(OwnShape shape : sizeFilteredShapes)
-        //    drawTransRectangle(shape);
-
+        //Find and return the biggest of the shapes //TODO this should properly be done in another way.
         if(sizeFilteredShapes.size() == 0)
             return null;
         else if(sizeFilteredShapes.size() == 1)
@@ -89,6 +76,7 @@ public class ScreenshotTaker extends JFrame{
         }
     }
 
+    /** Used for the white shapes. Contains additional useful information. */
     class OwnShape{
 
         public int xMax = -1;
@@ -106,6 +94,7 @@ public class ScreenshotTaker extends JFrame{
             setFields();
         }
 
+        /** Sets fields values. */
         private void setFields(){
             for(int i = 0; i < shape.length; i++){
                 for(int j = 0; j < shape[0].length; j++){
@@ -133,6 +122,7 @@ public class ScreenshotTaker extends JFrame{
         }
 
         //TODO should maybe take a parameter: check size
+        /** Used to determine if the size of the shape is larger that a portion of the screen size. */
         public boolean isShapeRightSize(){
 
             //TODO TEST 1/4 of screen size ok?
@@ -146,90 +136,60 @@ public class ScreenshotTaker extends JFrame{
         }
     }
 
+    /** Draws a button with the size and placement of the given shape. */
     private void drawTransRectangle(OwnShape shape){
 
         //https://stackoverflow.com/questions/1768062/how-to-create-an-overlay-window-in-java
+
         JFrame frame = new JFrame("Transparent window");
         frame.setUndecorated(true);
-        frame.setBackground(new Color(255,0,0));
+        frame.setBackground(new Color(0,0,0));
         frame.setAlwaysOnTop(true);
         // Without this, the window is draggable from any non transparent
         // point, including points  inside textboxes.
         frame.getRootPane().putClientProperty("apple.awt.draggableWindowBackground", false);
         frame.getContentPane().setLayout(new java.awt.BorderLayout());
 
-        //System.out.println(shape.length + " " + shape[0].length);
-
-        //frame.setSize(500, 500);
-
+        //Create the button representing the shape
         JButton button = new JButton();
         button.setPreferredSize(new Dimension(shape.xSize, shape.ySize));
         button.setText("hello");
         frame.add(button);
 
-
         frame.setLocation(shape.xMin, shape.yMin);
         frame.setVisible(true);
         frame.pack();
-
     }
 
-    private class Coord{
-        public int x = -1;
-        public int y = -1;
-
-        public Coord(){}
-
-        public Coord(int x, int y) {
-            this.x = x;
-            this.y = y;
-        }
-    }
-
+    /** @return arrayList of all whiteShapes. */
     private ArrayList<boolean[][]> getAllWhiteShapes(BufferedImage screenshot){
 
-        System.out.println("Width: " + screenshot.getWidth() + " Height: " + screenshot.getHeight());
-
-        //Convert screenshot into array.
+        //Convert screenshot into 2d-array of colors.
         Color[][] screenshotPixels = new Color[screenshot.getWidth()][screenshot.getHeight()];
-        for(int i = 0; i < screenshot.getWidth(); i++){
-            for(int j = 0; j < screenshot.getHeight(); j++){
-
-                //System.out.println("i: " + i + " j: " + j);
+        for(int i = 0; i < screenshot.getWidth(); i++)
+            for(int j = 0; j < screenshot.getHeight(); j++)
                 screenshotPixels[i][j] = new Color(screenshot.getRGB(i,j));
 
-            }
-        }
-
         //Search array for white
-        //if found search for scape and add to list //set found to null
+        //if found search for shape and add to list //set found to null
         //else set pixel to null
-
-        System.out.println("Searching for white!");
         ArrayList<boolean[][]> whiteShapes = new ArrayList<>();
-
         for(int i = 0; i < screenshotPixels.length; i++){
             for(int j = 0; j < screenshotPixels[0].length; j++){
 
-                if(screenshotPixels[i][j] == null){
+                if(screenshotPixels[i][j] == null)
                     continue;
-
-                    //if found search for scape and add to list //set found to null
-                } else if(isColorWhite(new Color(screenshotPixels[i][j].getRGB()))){
-
-                    System.out.println("white shape!!");
-
+                else if(isColorWhite(screenshotPixels[i][j].getRGB())){ //White found! if found search for scape and add to list //set found to null
                     whiteShapes.add(findCoherentWhitePixels(screenshotPixels, i, j)); //TODO
-
-                }else //else set pixel to null
+                }else //Not white! Set pixel to null
                     screenshotPixels[i][j] = null;
-
             }
         }
 
         return whiteShapes;
     }
 
+    /** Checks if the given color is white. */
     private boolean isColorWhite(int rgb){
         return isColorWhite(new Color(rgb));
     }
@@ -244,6 +204,7 @@ public class ScreenshotTaker extends JFrame{
         return (red == 255 && green == 255 && blue == 255);
     }
 
+    /** TODO CLEANUP*/
     private boolean[][] findCoherentWhitePixels(Color[][] screenshotPixels, int startX, int startY){
 
         boolean[][] shape = new boolean[screenshotPixels.length][screenshotPixels[0].length];
@@ -253,6 +214,7 @@ public class ScreenshotTaker extends JFrame{
         return shape;
     }
 
+    /** TODO CLEANUP*/
     private void findCoherentWhitePixels(Color[][] screenshotPixels, boolean[][] shape, int x, int y) {
 
         try{
@@ -281,4 +243,25 @@ public class ScreenshotTaker extends JFrame{
         }
     }
 
+
+    //TODO NOT SURE IF I SHOULD KEEP?
+
+    /** used for coordinates*/
+    private class Coord{
+
+        public int x = -1;
+        public int y = -1;
+        public Coord(){}
+
+        public Coord(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+    /** @return the color the given screenshot at the given coords. */
+    public Color getColorFromCoords(int x, int y, BufferedImage screenshot){
+
+        return new Color(screenshot.getRGB(x, y));
+    }
 }
