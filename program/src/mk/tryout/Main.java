@@ -1,4 +1,4 @@
-package mk;
+package mk.tryout;
 
 public class Main {
 
@@ -18,6 +18,6 @@ public class Main {
         //keyStroker.sendKeyStroke();
 
         System.out.println("NEW");
-        screenshotTaker.hasGameStarted(screenshotTaker.screenshot);
+        screenshotTaker.hasGameStarted(screenshotTaker.takeScreenShot());
     }
 }

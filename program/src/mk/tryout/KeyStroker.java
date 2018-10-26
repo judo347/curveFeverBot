@@ -1,4 +1,4 @@
-package mk;
+package mk.tryout;
 
 //https://stackoverflow.com/questions/32641269/how-to-programmatically-send-a-key-event-to-any-window-process-in-a-java-app
 

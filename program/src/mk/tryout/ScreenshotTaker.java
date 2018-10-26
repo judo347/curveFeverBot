@@ -1,4 +1,4 @@
-package mk;
+package mk.tryout;
 
 import javax.swing.*;
 import java.awt.*;
