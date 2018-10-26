@@ -26,8 +26,8 @@ Take picture of game
 
 #### Work flow: 
 
-- Enable screenshot taking.
-- Detect game playing field.
+- Enable screenshot taking. (DONE)
+- Detect game playing field. (DONE) Could use some work
 - Create digital map of game. 
 - Detect who I am.
 
