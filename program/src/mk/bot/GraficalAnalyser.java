@@ -1,17 +1,29 @@
 package mk.bot;
 
+import mk.bot.GameInfo.*;
+import mk.bot.GameInfo.PlayerColor.*;
+
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 //http://www.javatechblog.com/java/how-to-take-screenshot-programmatically-in-java/
 
 //TODO: Maybe some sort of way to make the screenshot have fewer color for more reliable results/reads?
+//TODO modify functions to only take the portion of the screen that is the game.
+//TODO: CREATE A GAME TICK PACKET. This will make alot update at the same time, and will make everything a lot faster!
 
 public class GraficalAnalyser extends JFrame{ //TODO does it need to extend JFrame?
 
     private static final long serialVersionUID = 1L; //TODO is this really needed?
+
+    private static ArrayList<Integer> countingDownColorHistory = new ArrayList<>();
 
     /** @return a screenshot. */
     public BufferedImage takeScreenShot(){
@@ -30,7 +42,52 @@ public class GraficalAnalyser extends JFrame{ //TODO does it need to extend JFra
         return null;
     }
 
-    /** returns true if start is counting down or game has started. */
+    /** @return true if the game is counting down for a game. */
+    public boolean isGameCountingDown(BufferedImage screenshot){
+
+        //is counting down colors present?
+
+        //Get all colors from screenshot matching the player colors.
+        ArrayList<RGB> allPlayerColorPresented = getAllPlayerColorsFromImage(screenshot);
+
+        //Remove all the colors not matching CountingDown colors
+        ArrayList<RGB> allPlayerColorsCountingDown = getAllRGBMatchingGameState(allPlayerColorPresented, GameState.COUNTING);
+
+        System.out.println("Counting down colors: " + allPlayerColorsCountingDown.size()); //TODO TEMP
+        //Check if there is only countingDown colors left in array
+        return allPlayerColorsCountingDown.size() != 0;
+    }
+
+    private ArrayList<RGB> getAllRGBMatchingGameState(ArrayList<RGB> array, GameState gameState){
+
+        ArrayList<RGB> rgbMatchingGameState = new ArrayList<>();
+
+        for(RGB rgb : array)
+            if(GameInfo.PlayerColor.getStageColorFromRGB(rgb) == gameState)
+                rgbMatchingGameState.add(rgb);
+
+        return rgbMatchingGameState;
+    }
+
+    /** @return arrayList of RGBs that all fit the colors of players. */
+    private ArrayList<RGB> getAllPlayerColorsFromImage(BufferedImage image){
+
+        ArrayList<RGB> foundPlayerColors = new ArrayList<>();
+
+        for(int i = 0; i < image.getWidth(); i++)
+            for(int j = 0; j < image.getHeight(); j++){
+
+                Color currentColor = new Color(image.getRGB(i,j));
+                PlayerColor currentPlayerColor = PlayerColor.getPlayerColorFromColor(currentColor);
+
+                if(currentPlayerColor != null)
+                    foundPlayerColors.add(new RGB(currentColor));
+            }
+
+            return foundPlayerColors;
+    }
+
+    /** @return true if start is counting down or game has started. */
     public boolean hasGameStarted(BufferedImage screenshot){
 
         //Find all white shapes
@@ -220,10 +277,14 @@ public class GraficalAnalyser extends JFrame{ //TODO does it need to extend JFra
     private void findCoherentWhitePixels(Color[][] screenshotPixels, boolean[][] shape, int x, int y) {
 
         try{
+            //OutOfBoundsCheck
+            if(x < 0 || x > screenshotPixels.length-1)
+                return;
+            else if(y < 0 || y > screenshotPixels[0].length-1)
+                return;
             if (screenshotPixels[x][y] == null) {
                 return;
-            }
-            if (!isColorWhite(screenshotPixels[x][y])) { //location is not white
+            }else if (!isColorWhite(screenshotPixels[x][y])) { //location is not white
                 screenshotPixels[x][y] = null;
                 return;
             } else { //Pixel is white
@@ -238,13 +299,38 @@ public class GraficalAnalyser extends JFrame{ //TODO does it need to extend JFra
                     }
                 }
             }
-        }catch (ArrayIndexOutOfBoundsException e){
-            return;
         }catch (StackOverflowError e){
             return; //TODO should be fized
         }
     }
 
+    /** Saves the given screenshot. */
+    public void saveScreenshot(BufferedImage screenshot){
+
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd hh mm ss a");
+        Calendar now = Calendar.getInstance();
+        try {
+            ImageIO.write(screenshot, "PNG", new File("d:\\"+formatter.format(now.getTime())+".jpg"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public BufferedImage setAlphaForAllPixels(BufferedImage image, int alpha){
+        //TODO
+
+        for(int i = 0; i < image.getWidth(); i++){
+            for(int j = 0; j < image.getHeight(); j++){
+
+                Color currentPixel = new Color(image.getRGB(i,j));
+                Color newPixel = new Color(currentPixel.getRed(), currentPixel.getGreen(), currentPixel.getBlue(), alpha);
+                image.setRGB(i,j,newPixel.getRGB());
+            }
+        }
+
+        return image;
+    }
 
     //TODO NOT SURE IF I SHOULD KEEP?
 

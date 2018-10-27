@@ -1,13 +1,16 @@
 package mk.bot;
 
 import java.awt.*;
-import java.util.ArrayList;
 
 public class GameInfo {
 
 
 
-    public enum PlayerColors{
+    public enum GameState {
+        COUNTING, INGAME, SCOREBOARD;
+    }
+
+    public enum PlayerColor {
 
             /* COLOR NOTES:
         R,G,B   INGAME      SCOREBOARD  START
@@ -19,6 +22,7 @@ public class GameInfo {
         LIME:   195,207,36  179,188,35  165,173,2
          */
 
+
         ORANGE(new RGB(206,95,13), new RGB(213,118,37), new RGB(251,140,44)),
         PURPLE(new RGB(117,54,97), new RGB(158,94,140), new RGB(142,92,127)),
         GREEN(new RGB(23,130,44), new RGB(63,176,96), new RGB(53,149,81)),
@@ -28,17 +32,72 @@ public class GameInfo {
 
         RGB colorMinValues;
         RGB colorMaxValues;
-        RGB startColor;
+        RGB countingColor;
         RGB ingameColor;
         RGB scoreboardColor;
 
-        PlayerColors(RGB startColor, RGB ingameColor, RGB scoreboardColor) {
-            this.startColor = startColor;
+        private final static int ACD = 5; //ALLOWED_COLOR_DEVIATION
+
+        PlayerColor(RGB countingColor, RGB ingameColor, RGB scoreboardColor) {
+            this.countingColor = countingColor;
             this.ingameColor = ingameColor;
             this.scoreboardColor = scoreboardColor;
 
             colorMinValues = setMaxOrMinValues(scoreboardColor, ingameColor, scoreboardColor, true);
             colorMaxValues = setMaxOrMinValues(scoreboardColor, ingameColor, scoreboardColor, false);
+        }
+
+        /** Take a color and returns the corresponding enum. */
+        public static PlayerColor getPlayerColorFromColor(Color color){
+
+            for(PlayerColor playerColor : PlayerColor.values()){
+
+                int minAllowedRedValue = playerColor.getColorMinValues().red - ACD;
+                int minAllowedGreenValue = playerColor.getColorMinValues().green - ACD;
+                int minAllowedBlueValue = playerColor.getColorMinValues().blue - ACD;
+                int maxAllowedRedValue = playerColor.getColorMaxValues().red + ACD;
+                int maxAllowedGreenValue = playerColor.getColorMaxValues().green + ACD;
+                int maxAllowedBlueValue = playerColor.getColorMaxValues().blue + ACD;
+
+                boolean isRedValueOk = color.getRed() >= minAllowedRedValue && maxAllowedRedValue >= color.getRed();
+                boolean isGreenValueOk = color.getGreen() >= minAllowedGreenValue && maxAllowedGreenValue >= color.getGreen();
+                boolean isBlueValueOk = color.getBlue() >= minAllowedBlueValue && maxAllowedBlueValue - ACD >= color.getBlue();
+
+                if(isRedValueOk && isGreenValueOk && isBlueValueOk)
+                    return playerColor;
+
+            }
+
+            return null; //Color not found
+        }
+
+        public RGB getColorMinValues() {
+            return colorMinValues;
+        }
+
+        public RGB getColorMaxValues() {
+            return colorMaxValues;
+        }
+
+        /** @return the stageColor matching the given RGB. */
+        public static GameState getStageColorFromRGB(RGB rgb){
+
+            for(PlayerColor playerColor : PlayerColor.values()){
+                if(rgb.getRed() == playerColor.countingColor.getRed() &&
+                        rgb.getGreen() == playerColor.countingColor.getGreen() &&
+                        rgb.getBlue() == playerColor.countingColor.getBlue())
+                    return GameState.COUNTING;
+                if(rgb.getRed() == playerColor.ingameColor.getRed() &&
+                        rgb.getGreen() == playerColor.ingameColor.getGreen() &&
+                        rgb.getBlue() == playerColor.ingameColor.getBlue())
+                    return GameState.INGAME;
+                if(rgb.getRed() == playerColor.scoreboardColor.getRed() &&
+                        rgb.getGreen() == playerColor.scoreboardColor.getGreen() &&
+                        rgb.getBlue() == playerColor.scoreboardColor.getBlue())
+                    return GameState.SCOREBOARD;
+            }
+
+            return null;
         }
 
         /** Returns an RGB with either max or min values of the given RGB elements.
@@ -73,54 +132,22 @@ public class GameInfo {
             return holder;
         }
 
-        /** Take a color and returns the corresponding enum. */
-        public PlayerColors getPlayerColorFromColor(Color color){
-
-            if(color.getRed() <= 206 && 251 <= color.getRed() &&
-                    color.getGreen() <= 95 && 140 <= color.getGreen() &&
-                    color.getBlue() <= 13 && 44 <= color.getBlue())
-                return ORANGE;
-
-            if(color.getRed() <= 117 && 158 <= color.getRed() &&
-                    color.getGreen() <= 54 && 94 <= color.getGreen() &&
-                    color.getBlue() <= 97 && 140 <= color.getBlue())
-                return PURPLE;
-
-            if(color.getRed() <= 23 && 63 <= color.getRed() &&
-                    color.getGreen() <= 130 && 176 <= color.getGreen() &&
-                    color.getBlue() <= 44 && 96 <= color.getBlue())
-                return GREEN;
-
-            //TODO Missing values for COLOR AT START
-            if(color.getRed() <= 14 && 14 <= color.getRed() &&
-                    color.getGreen() <= 151 && 177 <= color.getGreen() &&
-                    color.getBlue() <= 162 && 190 <= color.getBlue())
-                return BLUE;
-
-            if(color.getRed() <= 191 && 225 <= color.getRed() &&
-                    color.getGreen() <= 23 && 53 <= color.getGreen() &&
-                    color.getBlue() <= 36 && 61 <= color.getBlue())
-                return RED;
-
-            if(color.getRed() <= 165 && 195 <= color.getRed() &&
-                    color.getGreen() <= 173 && 207 <= color.getGreen() &&
-                    color.getBlue() <= 2 && 36 <= color.getBlue())
-                return LIME;
-
-            return null; //Color not found
-        }
-
         /** Used to the determine: is the given color a player color? */
         public boolean isColorAPlayerColor(Color color){
             return getPlayerColorFromColor(color) != null;
         }
-
         /** A class to represent RGB*/
-        static class RGB{
+        public static class RGB{
+
+
 
             int red;
             int green;
             int blue;
+
+            public RGB(Color color){
+                new RGB(color.getRed(), color.getGreen(), color.getBlue());
+            }
 
             public RGB(int red, int green, int blue) {
                 this.red = red;
