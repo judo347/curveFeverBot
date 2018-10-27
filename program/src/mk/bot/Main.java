@@ -1,16 +1,16 @@
 package mk.bot;
 
-import java.awt.image.BufferedImage;
-
 public class Main {
 
     public static void main(String[] args) {
+
+        thisOne();
 
         //Bot bot = new Bot();
 
         //bot.startBot();
 
-
+        /*
         GraficalAnalyser graficalAnalyser = new GraficalAnalyser();
         BufferedImage image = graficalAnalyser.takeScreenShot();
 
@@ -22,6 +22,12 @@ public class Main {
             graficalAnalyser.saveScreenshot(graficalAnalyser.setAlphaForAllPixels(image,255));
         } catch (InterruptedException e) {
             e.printStackTrace();
-        }
+        }*/
+    }
+
+    private static void thisOne(){
+
+        GameTickPacket gtp = new GameTickPacket();
+
     }
 }

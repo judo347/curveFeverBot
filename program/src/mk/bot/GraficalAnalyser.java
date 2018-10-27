@@ -87,6 +87,20 @@ public class GraficalAnalyser extends JFrame{ //TODO does it need to extend JFra
             return foundPlayerColors;
     }
 
+    /** @return the gameSquare. Null if none were found. */
+    public OwnShape getGameSquare(BufferedImage screenshot){
+
+        //Find all white shapes
+        ArrayList<boolean[][]> whiteShapes = getAllWhiteShapes(screenshot);
+
+        //Find playing field square
+        OwnShape gameSquare = getGameSquare(whiteShapes); //TODO Should use this as the playing field for the rest of the game IMPORTANT!!
+
+        //drawTransRectangle(gameSquare); //TODO Temp
+
+        return gameSquare;
+    }
+
     /** @return true if start is counting down or game has started. */
     public boolean hasGameStarted(BufferedImage screenshot){
 
@@ -246,6 +260,13 @@ public class GraficalAnalyser extends JFrame{ //TODO does it need to extend JFra
         }
 
         return whiteShapes;
+    }
+
+    /** Returns a sections of the given image from the x,y (top-left corner)
+     * and with the size of the given width and height.
+     * @return a section of the given image.*/
+    public BufferedImage getSubImage(BufferedImage image, int x, int y, int width, int height){
+        return image.getSubimage(x, y, width, height);
     }
 
     /** Checks if the given color is white. */
