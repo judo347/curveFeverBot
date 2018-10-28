@@ -29,5 +29,12 @@ public class Main {
 
         GameTickPacket gtp = new GameTickPacket();
 
+        while (true)
+            gtp.update();
+
+        //GraficalAnalyser graficalAnalyser = new GraficalAnalyser();
+
+        //graficalAnalyser.isRoundActive(graficalAnalyser.getGameSquare(graficalAnalyser.takeScreenShot()));
+
     }
 }

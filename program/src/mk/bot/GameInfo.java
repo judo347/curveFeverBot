@@ -7,7 +7,7 @@ public class GameInfo {
 
 
     public enum GameState {
-        COUNTING, INGAME, SCOREBOARD;
+        COUNTING, INGAME, SCOREBOARD, NOT_KNOWN;
     }
 
     public enum PlayerColor {

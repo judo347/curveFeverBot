@@ -2,6 +2,7 @@ package mk.bot;
 
 import mk.bot.GameInfo.*;
 import mk.bot.GameInfo.PlayerColor.*;
+import mk.bot.GameTickPacket.Player;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 
 //http://www.javatechblog.com/java/how-to-take-screenshot-programmatically-in-java/
 
@@ -46,6 +48,7 @@ public class GraficalAnalyser extends JFrame{ //TODO does it need to extend JFra
     public boolean isGameCountingDown(BufferedImage screenshot){
 
         //is counting down colors present?
+        //TODO. This could also be done with the getMiddleNumber function. Might be a lot better!
 
         //Get all colors from screenshot matching the player colors.
         ArrayList<RGB> allPlayerColorPresented = getAllPlayerColorsFromImage(screenshot);
@@ -56,6 +59,60 @@ public class GraficalAnalyser extends JFrame{ //TODO does it need to extend JFra
         System.out.println("Counting down colors: " + allPlayerColorsCountingDown.size()); //TODO TEMP
         //Check if there is only countingDown colors left in array
         return allPlayerColorsCountingDown.size() != 0;
+    }
+
+    /***/
+    public PlayerColor findPlayerColor(BufferedImage screenshot){
+
+        //Create hashMap to be used as a counter.
+        HashMap<PlayerColor, Integer> playerColorCounter = new HashMap<>();
+        for(PlayerColor playerColor : PlayerColor.values())
+            playerColorCounter.put(playerColor, 0);
+
+
+        //Count player colors present in area. Get the color matching the most present color found.
+        for(int i = 0; i < screenshot.getWidth(); i++) {
+            for (int j = 0; j < screenshot.getHeight(); j++) {
+
+                //Is the pixel matching a player color?
+                PlayerColor currentPixel = PlayerColor.getPlayerColorFromColor(new Color(screenshot.getRGB(i,j)));
+
+                if(currentPixel != null)
+                    playerColorCounter.put(currentPixel, playerColorCounter.get(currentPixel) + 1);
+            }
+        }
+
+        //Find the player
+        PlayerColor mostPointsPlayer = null;
+        int mostPlayerPoints = -1;
+
+        for(PlayerColor playerColor : PlayerColor.values()){
+
+            int currentPlayerPoints = playerColorCounter.get(playerColor);
+
+            if(mostPlayerPoints < currentPlayerPoints){
+                mostPlayerPoints = currentPlayerPoints;
+                mostPointsPlayer = playerColor;
+            }
+        }
+
+        return mostPointsPlayer;
+    }
+
+
+
+    /** @return if the count of white pixels in the middle area of the screen is over 1000. */
+    public boolean isGameCountingDown2(BufferedImage screenshot){
+
+        //Get center screen, for number
+        BufferedImage middleNumber = getMiddleNumber(screenshot);
+
+        //Count white pixels
+        int whitePixels = countWhitePixels(middleNumber);
+        // Count doing countdown is 1333, 1435 or 1459. Player in area = 2,16,28
+
+        //return based on the count.
+        return whitePixels > 1000;
     }
 
     private ArrayList<RGB> getAllRGBMatchingGameState(ArrayList<RGB> array, GameState gameState){
@@ -147,6 +204,79 @@ public class GraficalAnalyser extends JFrame{ //TODO does it need to extend JFra
 
             return biggestShape;
         }
+    }
+
+    /** @return tries to find player in picture and returns a new player. */
+    public Player getPlayer(BufferedImage image){
+
+        //PlayerColor playerColor = getPlayerColor();
+
+
+        //Player player = new Player(); //TODO
+
+        return null; //TODO
+    }
+
+    public Coord getPlayerLocation(BufferedImage image, PlayerColor playerColor){
+
+        //TODO
+
+        return null; //TODO
+    }
+
+    /** Done by detecting white in the top right corner of the gameSquare. */
+    public boolean isRoundActive(BufferedImage image){
+
+        //Get top right corner of image
+        BufferedImage topRightImage = getTopRightCorner(image);
+
+        //Count white pixel
+        int whitePixelCount = countWhitePixels(topRightImage);
+
+        //Return true if number of white pixels is greater than x
+        return whitePixelCount > 400;
+    }
+
+    /** @return subImage from the given image only containing the number in the middle of the screen. */
+    private BufferedImage getMiddleNumber(BufferedImage image){
+
+        final int roundNumberSizeWidth = 44;
+        final int roundNumberSizeHeight = 68;
+
+        return image.getSubimage(813, 441, roundNumberSizeWidth, roundNumberSizeHeight);
+    }
+
+    /**
+     * @param image an image of the gameSquare
+     * @return top right corner of the given image. */
+    private BufferedImage getTopRightCorner(BufferedImage image){
+
+        final int goalTextSizeWidth = 100;
+        final int goalTextSizeHeight = 50;
+
+        // 1666 total width, 937 total height.
+        // wanted area 100 x 50
+
+        return image.getSubimage(image.getWidth() - goalTextSizeWidth, 0, goalTextSizeWidth, goalTextSizeHeight);
+    }
+
+    /** @return number of white pixels in the given image. */
+    private int countWhitePixels(BufferedImage image) {
+
+        int counter = 0;
+
+        for (int i = 0; i < image.getWidth(); i++) {
+            for (int j = 0; j < image.getHeight(); j++) {
+
+                Color currentPixel = new Color(image.getRGB(i,j));
+
+                //Is the color white?
+                if(currentPixel.getRed() > 180 && currentPixel.getGreen() > 180 && currentPixel.getBlue() > 180)
+                    counter++;
+            }
+        }
+
+        return counter;
     }
 
     /** Used for the white shapes. Contains additional useful information. */
@@ -356,7 +486,7 @@ public class GraficalAnalyser extends JFrame{ //TODO does it need to extend JFra
     //TODO NOT SURE IF I SHOULD KEEP?
 
     /** used for coordinates*/
-    private class Coord{
+    public class Coord{
 
         public int x = -1;
         public int y = -1;
